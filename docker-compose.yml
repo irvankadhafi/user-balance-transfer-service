@@ -1,0 +1,22 @@
+version: '3'
+
+volumes:
+  postgres_db: {}
+
+networks:
+  bridge:
+
+services:
+  ic_postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=privy
+      - POSTGRES_PASSWORD=irvankdhf
+      - POSTGRES_DB=user_balance_transfer_service
+    volumes:
+      - "postgres_db:/var/lib/postgresql/data"
+    stdin_open: true
+    networks:
+      - bridge
+    ports:
+      - "15432:5432"
