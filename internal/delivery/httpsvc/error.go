@@ -10,6 +10,7 @@ import (
 // http errors
 var (
 	ErrInvalidArgument            = echo.NewHTTPError(http.StatusBadRequest, "invalid argument")
+	ErrNotEnoughBalance           = echo.NewHTTPError(http.StatusBadRequest, "balance not enough")
 	ErrNotFound                   = echo.NewHTTPError(http.StatusNotFound, "record not found")
 	ErrInternal                   = echo.NewHTTPError(http.StatusInternalServerError, "internal system error")
 	ErrEntityTooLarge             = echo.NewHTTPError(http.StatusRequestEntityTooLarge, "entity too large")

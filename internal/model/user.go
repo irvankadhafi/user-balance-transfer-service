@@ -2,12 +2,11 @@ package model
 
 import (
 	"context"
-	"fmt"
 )
 
 // User :nodoc:
 type User struct {
-	ID       int    `json:"id"`
+	ID       int    `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password" gorm:"->:false;<-"` // gorm create & update only (disabled read from db)
@@ -20,8 +19,8 @@ type UserRepository interface {
 	FindByID(ctx context.Context, id int) (*User, error)
 	FindByUsername(ctx context.Context, username string) (*User, error)
 	FindByEmail(ctx context.Context, email string) (*User, error)
-	IsLoginByUsernamePasswordLocked(ctx context.Context, username string) (bool, error)
-	IncrementLoginByUsernamePasswordRetryAttempts(ctx context.Context, username string) error
+	IsLoginByEmailPasswordLocked(ctx context.Context, email string) (bool, error)
+	IncrementLoginByEmailPasswordRetryAttempts(ctx context.Context, username string) error
 	FindPasswordByID(ctx context.Context, id int) ([]byte, error)
 }
 
@@ -45,23 +44,4 @@ func (c *CreateUserInput) Validate() error {
 	}
 
 	return nil
-}
-
-func NewUserCacheKeyByEmail(email string) string {
-	return fmt.Sprintf("cache:id:user_email:%s", email)
-}
-func NewUserCacheKeyByUsername(username string) string {
-	return fmt.Sprintf("cache:id:username:%s", username)
-}
-
-func NewUserCacheKeyByID(id int) string {
-	return fmt.Sprintf("cache:object:user:id:%d", id)
-}
-
-func NewLoginByUsernamePasswordAttemptsCacheKeyByUsername(username string) string {
-	return fmt.Sprintf("cache:login_attempts:username_password:username:%s", username)
-}
-
-func NewPasswordCacheKeyByID(id int) string {
-	return fmt.Sprintf("cache:password:id:%d", id)
 }

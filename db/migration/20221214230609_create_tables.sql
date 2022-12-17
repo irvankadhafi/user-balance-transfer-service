@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS "user_balances" (
     id SERIAL PRIMARY KEY,
     user_id INT,
     balance INT NOT NULL,
-    balance_achieve INT NOT NULL
+    balance_achieve INT NOT NULL,
+    "created_at" TIMESTAMP NOT NULL DEFAULT 'now()'
 );
 
 CREATE TABLE IF NOT EXISTS "user_balance_histories" (
@@ -28,7 +29,8 @@ CREATE TABLE IF NOT EXISTS "user_balance_histories" (
     ip_address TEXT NOT NULL,
     location TEXT NOT NULL,
     user_agent TEXT NOT NULL,
-    author TEXT
+    author TEXT,
+    "created_at" TIMESTAMP NOT NULL DEFAULT 'now()'
 );
 
 CREATE TABLE IF NOT EXISTS "bank_balances" (
@@ -36,7 +38,8 @@ CREATE TABLE IF NOT EXISTS "bank_balances" (
     balance INT NOT NULL,
     balance_achieve INT NOT NULL,
     code TEXT NOT NULL,
-    enable boolean NOT NULL
+    enable boolean NOT NULL,
+    "created_at" TIMESTAMP NOT NULL DEFAULT 'now()'
 );
 
 CREATE TABLE IF NOT EXISTS "bank_balance_histories" (
@@ -49,7 +52,8 @@ CREATE TABLE IF NOT EXISTS "bank_balance_histories" (
     ip_address TEXT NOT NULL,
     location TEXT NOT NULL,
     user_agent TEXT NOT NULL,
-    author TEXT NOT NULL
+    author TEXT NOT NULL,
+    "created_at" TIMESTAMP NOT NULL DEFAULT 'now()'
 );
 
 

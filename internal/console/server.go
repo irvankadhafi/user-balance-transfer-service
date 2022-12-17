@@ -81,6 +81,15 @@ func run(cmd *cobra.Command, args []string) {
 	authUsecase := usecase.NewAuthUsecase(userRepo, sessionRepo, userUsecase)
 	userAuther := usecase.NewUserAutherAdapter(authUsecase)
 
+	gormTransationer := repository.NewGormTransactioner(db.PostgreSQL)
+	userBalanceRepo := repository.NewUserBalanceRepository(db.PostgreSQL)
+	userBalanceHistoryRepo := repository.NewUserBalanceHistoryRepository(db.PostgreSQL)
+	userBalanceUsecase := usecase.NewUserBalanceUsecase(userRepo, userBalanceRepo, userBalanceHistoryRepo, gormTransationer, sessionRepo)
+
+	bankBalanceRepo := repository.NewBankBalanceRepository(db.PostgreSQL)
+	bankBalanceHistoryRepo := repository.NewBankBalanceHistoryRepository(db.PostgreSQL)
+	bankBalanceUsecase := usecase.NewBankBalanceUsecase(bankBalanceRepo, bankBalanceHistoryRepo, gormTransationer, sessionRepo)
+
 	httpServer := echo.New()
 	httpMiddleware := auth.NewAuthenticationMiddleware(authenticationCacher, userAuther)
 
@@ -89,7 +98,7 @@ func run(cmd *cobra.Command, args []string) {
 	httpServer.Use(middleware.Recover())
 	httpServer.Use(middleware.CORS())
 
-	httpsvc.RouteService(httpServer, authUsecase, httpMiddleware)
+	httpsvc.RouteService(httpServer, authUsecase, userBalanceUsecase, bankBalanceUsecase, httpMiddleware)
 
 	sigCh := make(chan os.Signal, 1)
 	errCh := make(chan error, 1)

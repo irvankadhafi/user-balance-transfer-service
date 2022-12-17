@@ -19,9 +19,9 @@ type loginResponse struct {
 	RefreshTokenExpiresAt string `json:"refresh_token_expires_at"`
 }
 
-func (s *Service) handleLoginByUsernamePassword() echo.HandlerFunc {
+func (s *Service) handleLoginByEmailPassword() echo.HandlerFunc {
 	type request struct {
-		Username string `json:"username"`
+		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 	return func(c echo.Context) error {
@@ -31,8 +31,8 @@ func (s *Service) handleLoginByUsernamePassword() echo.HandlerFunc {
 			return ErrInvalidArgument
 		}
 
-		session, err := s.authUsecase.LoginByUsernamePassword(c.Request().Context(), model.LoginRequest{
-			Username:      req.Username,
+		session, err := s.authUsecase.LoginByEmailPassword(c.Request().Context(), model.LoginRequest{
+			Email:         req.Email,
 			PlainPassword: req.Password,
 			IPAddress:     c.RealIP(),
 			UserAgent:     c.Request().UserAgent(),
@@ -126,9 +126,9 @@ func GetAuthUserFromCtx(ctx context.Context) *model.User {
 	if authUser == nil {
 		return nil
 	}
-	user := &model.User{
+
+	return &model.User{
 		ID:        authUser.ID,
 		SessionID: authUser.SessionID,
 	}
-	return user
 }

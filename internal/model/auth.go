@@ -4,7 +4,7 @@ import "context"
 
 // LoginRequest request
 type LoginRequest struct {
-	Username      string `json:"username"`
+	Email         string `json:"email"`
 	PlainPassword string `json:"plain_password"`
 	IPAddress     string `json:"ip_address"`
 	UserAgent     string `json:"user_agent"`
@@ -19,7 +19,7 @@ type RefreshTokenRequest struct {
 
 // AuthUsecase usecases about IAM
 type AuthUsecase interface {
-	LoginByUsernamePassword(ctx context.Context, req LoginRequest) (*Session, error)
+	LoginByEmailPassword(ctx context.Context, req LoginRequest) (*Session, error)
 
 	// AuthenticateToken authenticate the given token
 	AuthenticateToken(ctx context.Context, accessToken string) (*User, error)

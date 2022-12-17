@@ -18,10 +18,10 @@ redis:
   read_timeout: 2
   max_idle_conn: 20
   max_active_conn: 50
-  cache_host: "redis://localhost:16379/0"
-  lock_host: "redis://localhost:16379/1"
-  auth_cache_host: "redis://localhost:16379/2"
-  auth_cache_lock_host: "redis://localhost:16379/3"
+  cache_host: "redis://localhost:6379/0"
+  lock_host: "redis://localhost:6379/1"
+  auth_cache_host: "redis://localhost:6379/2"
+  auth_cache_lock_host: "redis://localhost:6379/3"
 login:
   username_password:
     lock_ttl: "5m"

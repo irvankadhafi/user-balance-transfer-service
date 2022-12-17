@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/irvankadhafi/user-balance-transfer-service/cacher"
 	"github.com/irvankadhafi/user-balance-transfer-service/internal/config"
@@ -52,7 +52,7 @@ func (u *userRepository) FindByID(ctx context.Context, id int) (*model.User, err
 		return nil, nil
 	}
 
-	cacheKey := model.NewUserCacheKeyByID(id)
+	cacheKey := u.newCacheKeyByID(id)
 
 	user := &model.User{}
 	err := u.db.WithContext(ctx).Take(user, "id = ?", id).Error
@@ -73,7 +73,7 @@ func (u *userRepository) FindByUsername(ctx context.Context, username string) (*
 		"ctx":      utils.DumpIncomingContext(ctx),
 		"username": username,
 	})
-	cacheKey := model.NewUserCacheKeyByUsername(username)
+	cacheKey := u.newUserCacheKeyByUsername(username)
 	var id int
 	err := u.db.Model(model.User{}).Select("id").Take(&id, "username = ?", username).Error
 	switch err {
@@ -97,7 +97,7 @@ func (u *userRepository) FindByEmail(ctx context.Context, email string) (*model.
 		"ctx":   utils.DumpIncomingContext(ctx),
 		"email": email,
 	})
-	cacheKey := model.NewUserCacheKeyByEmail(email)
+	cacheKey := u.newUserCacheKeyByEmail(email)
 	var id int
 	err := u.db.Model(model.User{}).Select("id").Take(&id, "email = ?", email).Error
 	switch err {
@@ -122,7 +122,7 @@ func (u *userRepository) FindPasswordByID(ctx context.Context, id int) ([]byte, 
 		"id":  id,
 	})
 
-	cacheKey := model.NewPasswordCacheKeyByID(id)
+	cacheKey := u.newPasswordCacheKeyByID(id)
 	reply, mu, err := u.findStringValueFromCacheByKey(cacheKey)
 	defer cacher.SafeUnlock(mu)
 	if err != nil {
@@ -151,14 +151,14 @@ func (u *userRepository) FindPasswordByID(ctx context.Context, id int) ([]byte, 
 	return []byte(pass), err
 }
 
-// IncrementLoginByUsernamePasswordRetryAttempts increment login by username and password retry attempts by one
-func (u *userRepository) IncrementLoginByUsernamePasswordRetryAttempts(ctx context.Context, username string) error {
+// IncrementLoginByEmailPasswordRetryAttempts increment login by email and password retry attempts by one
+func (u *userRepository) IncrementLoginByEmailPasswordRetryAttempts(ctx context.Context, email string) error {
 	logger := logrus.WithFields(logrus.Fields{
-		"ctx":      utils.DumpIncomingContext(ctx),
-		"username": username,
+		"ctx":   utils.DumpIncomingContext(ctx),
+		"email": email,
 	})
 
-	key := model.NewLoginByUsernamePasswordAttemptsCacheKeyByUsername(username)
+	key := u.newLoginByEmailPasswordAttemptsCacheKeyByEmail(email)
 	if err := u.cacheManager.IncreaseCachedValueByOne(key); err != nil {
 		logger.Error(err)
 		return err
@@ -173,13 +173,13 @@ func (u *userRepository) IncrementLoginByUsernamePasswordRetryAttempts(ctx conte
 	return nil
 }
 
-func (u *userRepository) IsLoginByUsernamePasswordLocked(ctx context.Context, username string) (bool, error) {
+func (u *userRepository) IsLoginByEmailPasswordLocked(ctx context.Context, email string) (bool, error) {
 	logger := logrus.WithFields(logrus.Fields{
-		"ctx":      utils.DumpIncomingContext(ctx),
-		"username": username,
+		"ctx":   utils.DumpIncomingContext(ctx),
+		"email": email,
 	})
 
-	key := model.NewLoginByUsernamePasswordAttemptsCacheKeyByUsername(username)
+	key := u.newLoginByEmailPasswordAttemptsCacheKeyByEmail(email)
 	ttl, err := u.cacheManager.GetTTL(key)
 	if err != nil {
 		logger.Error(err)
@@ -206,15 +206,7 @@ func (u *userRepository) findFromCacheByKey(key string) (reply *model.User, mu *
 		return
 	}
 
-	bt, _ := rep.([]byte)
-	if bt == nil {
-		return
-	}
-
-	if err = json.Unmarshal(bt, &reply); err != nil {
-		return
-	}
-
+	reply = utils.InterfaceBytesToType[*model.User](rep)
 	return
 }
 
@@ -238,4 +230,23 @@ func (u *userRepository) findStringValueFromCacheByKey(key string) (reply string
 
 	reply = utils.InterfaceBytesToType[string](rep)
 	return
+}
+
+func (u *userRepository) newLoginByEmailPasswordAttemptsCacheKeyByEmail(email string) string {
+	return fmt.Sprintf("cache:login_attempts:email_password:user_email:%s", email)
+}
+
+func (u *userRepository) newCacheKeyByID(id int) string {
+	return fmt.Sprintf("cache:object:user:id:%d", id)
+}
+
+func (u *userRepository) newUserCacheKeyByEmail(email string) string {
+	return fmt.Sprintf("cache:id:user_email:%s", email)
+}
+func (u *userRepository) newUserCacheKeyByUsername(username string) string {
+	return fmt.Sprintf("cache:id:username:%s", username)
+}
+
+func (u *userRepository) newPasswordCacheKeyByID(id int) string {
+	return fmt.Sprintf("cache:password:id:%d", id)
 }

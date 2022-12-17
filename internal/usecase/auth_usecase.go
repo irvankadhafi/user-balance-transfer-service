@@ -30,16 +30,16 @@ func NewAuthUsecase(
 	}
 }
 
-// LoginByUsernamePassword login the user by username & password
-func (a *authUsecase) LoginByUsernamePassword(ctx context.Context, req model.LoginRequest) (*model.Session, error) {
+// LoginByEmailPassword login the user by email & password
+func (a *authUsecase) LoginByEmailPassword(ctx context.Context, req model.LoginRequest) (*model.Session, error) {
 	logger := logrus.WithFields(logrus.Fields{
 		"ctx":       utils.DumpIncomingContext(ctx),
-		"username":  req.Username,
+		"email":     req.Email,
 		"ip":        req.IPAddress,
 		"userAgent": req.UserAgent,
 	})
 
-	isLocked, err := a.userRepo.IsLoginByUsernamePasswordLocked(ctx, req.Username)
+	isLocked, err := a.userRepo.IsLoginByEmailPasswordLocked(ctx, req.Email)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -49,7 +49,7 @@ func (a *authUsecase) LoginByUsernamePassword(ctx context.Context, req model.Log
 		return nil, ErrLoginMaxAttempts
 	}
 
-	user, err := a.userRepo.FindByUsername(ctx, req.Username)
+	user, err := a.userRepo.FindByEmail(ctx, req.Email)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -70,7 +70,7 @@ func (a *authUsecase) LoginByUsernamePassword(ctx context.Context, req model.Log
 
 	if !helper.IsHashedStringMatch([]byte(req.PlainPassword), cipherPass) {
 		// obscure the error if the password does not match
-		if err := a.userRepo.IncrementLoginByUsernamePasswordRetryAttempts(ctx, req.Username); err != nil {
+		if err := a.userRepo.IncrementLoginByEmailPasswordRetryAttempts(ctx, req.Email); err != nil {
 			logger.Error(err)
 			return nil, err
 		}
